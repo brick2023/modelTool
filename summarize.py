@@ -2,6 +2,8 @@
 這個 module 主要包含和模型輸出相關的 function
 請看清楚 function 使用方法再使用
 注意：因為目前硬體資源問題，載入時間可能會有點久這是正常的喔 by yenslife
+如果用的是給定 list 系列的函式，優點是可以只 load 一次 model，缺點是我們的主機無法負荷
+所以要使用 function 還是建議用 for 迴圈跑 text_to 系列的慢慢 load 就好（畢竟只是要取得後台資料，使用者不會有感官上的問題）
 也可能因為記憶體不足而被 killed，目前難點卡在 token 的數量上限和硬體資源不足
 
 requirement:
@@ -139,8 +141,6 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
 
         for outputs in gen_str:
             output_text = outputs["text"]
-            # print((output_text[input_len:]).replace('\n', ' '), flush=True, end="\r") # 這個目前輸出怪怪的，之後改
-            # print(output_text[input_len:])
             if outputs['finish_reason'] == 'stop':
                 final_text = output_text[input_len:]
 
