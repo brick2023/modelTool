@@ -1,0 +1,9 @@
+# 忽略影片資料夾
+test-video/
+video-content/
+
+# 忽略 python module 快取
+__pycache__/
+
+# 忽略自行測試的腳本
+# 但先放上來也沒關係
