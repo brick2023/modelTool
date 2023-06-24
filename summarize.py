@@ -75,7 +75,7 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
     prompt_token_count = len(tokenizer.tokenize(prompt))
     print('prompt token 總數(超過 2000 有 crash 的風險):', prompt_token_count)
     if prompt_token_count > 2000:
-        print(bcolors.WARNING + "警告：模型(13b)輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
+        print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
 
     # 載入模型
     model = load_model(model_path)
@@ -91,6 +91,8 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
         # print(output_text[input_len:])
         if outputs['finish_reason'] == 'stop':
             final_text = output_text[input_len:]
+
+    del model # 釋放記憶體
 
     return final_text
 
@@ -132,7 +134,7 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
         prompt_token_count = len(tokenizer.tokenize(prompt))
         print('prompt token 總數(超過 2000 有 crash 的風險):', prompt_token_count)
         if prompt_token_count > 2000:
-            print(bcolors.WARNING + "警告：模型(13b)輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
+            print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
 
         # 喂給模型
         print('輸入資料到模型中...')
@@ -150,6 +152,8 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
     for text in text_list:
         summary = summarizing(text)
         summary_list.append(summary)
+
+    del model # 釋放記憶體
 
     return summary_list
 

@@ -83,6 +83,8 @@ def media_list_to_text_dict(media_path_list, model_size='base'):
         text = result['text']
         out_dict[meida_path] = text
 
+    model = None # 釋放記憶體
+
     return out_dict
 
 def media_list_to_text_files(media_path_list, output_file_path, model_size='base'):
