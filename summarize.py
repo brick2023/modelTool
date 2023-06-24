@@ -173,9 +173,15 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
         summary = summarizing(text)
         summary_list.append(summary)
 
-    del model # 釋放記憶體
+    if len(summary_list) == len(text_list):
+        print('所有文章都已總結完成')
+    else:
+        print('有文章沒有總結完成，請檢查')
+
+    # 釋放記憶體
+    del model 
     del tokenizer
-    gc.collect() # 釋放記憶體
+    gc.collect() # gc.collect() 會釋放記憶體，但是不會把變數刪掉，所以要 del 變數
 
     return summary_list
 
