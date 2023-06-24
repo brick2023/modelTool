@@ -185,7 +185,7 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
 
     return summary_list
 
-def file_text_dict_to_summary_files(file_text_dict, output_dir_path, model_path=vicuna_7b_model_path, temperature=0.7):
+def file_text_dict_to_summary_files(file_text_dict, output_dir_path, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     把 [檔案路徑]:[內容] 的 dict 喂給他，產生對應的 summary 檔案
     file_text_dict: [檔案路徑]:[內容]
@@ -194,7 +194,7 @@ def file_text_dict_to_summary_files(file_text_dict, output_dir_path, model_path=
     """
 
     text_list = file_text_dict.values()
-    summary_list = text_list_to_summary_list(text_list, model_path, temperature)
+    summary_list = text_list_to_summary_list(text_list, model_path, temperature, tokenizer, model)
 
     for filepath in file_text_dict.keys():
         filename_with_extension = os.path.basename(filepath)
@@ -206,10 +206,10 @@ def file_text_dict_to_summary_files(file_text_dict, output_dir_path, model_path=
 
     return output_dir_path
 
-def file_list_to_summary_dict(file_list, model_path=vicuna_7b_model_path, temperature=0.7):
+def file_list_to_summary_dict(file_list, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     給定一個檔案路徑 list，輸出對應的 summary dict 格式為 [檔名]:[摘要]
-    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7)
+    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
     將一串文字作大意總節
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     """
@@ -223,7 +223,7 @@ def file_list_to_summary_dict(file_list, model_path=vicuna_7b_model_path, temper
         text_list.append(text)
 
     # 取得摘要
-    summary_list = text_list_to_summary_list(text_list, model_path, temperature)
+    summary_list = text_list_to_summary_list(text_list, model_path, temperature, tokenizer, model)
 
     # 包起來
     out_dict = dict()
@@ -231,15 +231,15 @@ def file_list_to_summary_dict(file_list, model_path=vicuna_7b_model_path, temper
         out_dict[file] = summary
     return out_dict
 
-def file_list_to_summary_files(file_list, out_file_path, model_path=vicuna_7b_model_path, temperature=0.7):
+def file_list_to_summary_files(file_list, out_file_path, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     給定一個檔案路徑 list，輸出對應的 summary 到指定檔案路徑
-    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7)
+    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
     將一串文字作大意總節
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     """
     # 取得 [path]:[summary]
-    summary_dict = file_list_to_summary_dict(file_list, model_path, temperature)
+    summary_dict = file_list_to_summary_dict(file_list, model_path, temperature, tokenizer, model)
 
     # 寫入檔案
     for input_file_path, summary in summary_dict.items():
@@ -251,16 +251,18 @@ def file_list_to_summary_files(file_list, out_file_path, model_path=vicuna_7b_mo
 
     return out_file_path
 
-def text_to_summary_file(text, output_path='./summarize.txt', model_path=vicuna_7b_model_path, temperature=0.7):
+def text_to_summary_file(text, output_path='./summarize.txt', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
     將文字摘要輸出到特定檔案
     參數一：text
     參數二：output_path
     參數三：model_path (預設 vicuna_13b_model_path)
     參數四：temperature (預設 0.7)
+    參數五：tokenizer (預設 None)
+    參數六：model (預設 None)
     '''
     
-    summarize = text_to_summary(text, model_path, temperature)
+    summarize = text_to_summary(text, model_path, temperature, tokenizer, model)
     print(f'正在將摘要寫入{output_path}')
     f = open(output_path, 'w')
     f.write(summarize)
@@ -268,28 +270,32 @@ def text_to_summary_file(text, output_path='./summarize.txt', model_path=vicuna_
     print(f'已寫入{output_path}')
     return output_path
 
-def file_text_to_summary_text(filepath, model_path=vicuna_7b_model_path, temperature=0.7):
+def file_text_to_summary_text(filepath, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
     函式樣式：file_text_summarize(filepath, model_path=vicuna_13b_model_path, temperature=0.7)
     讀取文字檔案，並輸出概要總結
     file path: 檔案路徑
+    tokenizer: 預設 None
+    model: 預設 None
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     '''
 
     f = open(filepath, 'r')
     text = f.read()
     f.close()
-    summerize = text_to_summary(text, model_path, temperature)
+    summerize = text_to_summary(text, model_path, temperature, tokenizer, model)
     return summerize
 
-def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vicuna_7b_model_path, temperature=0.7):
+def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
-    函式樣式：file_text_summarize(filepath, model_path=vicuna_13b_model_path, temperature=0.7)
     讀取文字檔案，並輸出概要總結到指定路徑檔案
     主要吃兩個參數 input_path 和 output_path
-    output_path 預設為 ./out.txt
+    input_path: 輸入檔案路徑
+    output_path: 輸出檔案路徑 (預設為 ./out.txt)
+    tokenizer: 預設 None
+    model: 預設 None
     '''
-    summarize = file_text_to_summary_text(input_path, model_path, temperature)
+    summarize = file_text_to_summary_text(input_path, model_path, temperature, tokenizer, model)
     f = open(input_path, 'w')
     f.write(summarize)
     f.close()
