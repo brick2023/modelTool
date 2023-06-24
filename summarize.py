@@ -108,19 +108,27 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
 
     return final_text
 
-def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temperature=0.7):
+def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     給定一個文字 list，輸出對應的 summary list
-    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7)
+    函式樣式：text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None)
+    輸入：text_list: list, model_path: str, temperature: float, tokenizer: AutoTokenizer, model: AutoModelForCausalLM
+    如果有輸入 tokenizer 和 model，則會直接使用，不會再 load 一次
     將一串文字作大意總節
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     """
 
     # 載入 tokenizer
-    tokenizer = load_tokenizer(model_path)
+    if tokenizer == None:
+        tokenizer = load_tokenizer(model_path)
+    else:
+        print('使用給定的 tokenizer')
 
     # 載入模型
-    model = load_model(model_path)
+    if model == None:
+        model = load_model(model_path)
+    else:
+        print('使用給定的 model')
 
     def summarizing(text):
         prompt = f'''
