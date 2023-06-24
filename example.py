@@ -10,7 +10,7 @@ e.g. 路徑修改完成後 -> cp example.py ../ && cd .. && python example.py
 """
 
 import os # 這個是用來取得檔案路徑的函式
-from summarize import file_text_dict_to_summary_files, text_to_summary_file # 這個是用來產生摘要檔案的函式
+from summarize import file_text_dict_to_summary_files, text_to_summary_file, load_tokenizer # 這個是用來產生摘要檔案的函式
 from mediaKit import media_to_text, media_list_to_text_dict                 # 這個是用來把影片轉成文字的函式
 
 video_path = '/home/brick/yenslife/modelTool/test-video/'              # 影片路徑
@@ -25,13 +25,18 @@ for mp4 in os.listdir(video_path):
 
 # 取得 [filepath]:[text] 的字典(dict)
 file_text_dict = media_list_to_text_dict(media_path_list, 'large')
+print(file_text_dict)
+
+# 預先 load tokenizer 可以省下每次都要 load tokenizer 的時間
+# 沒有預先 load tokenizer 的話，他還是會自己 load 一次，但是會比較慢(因為要每次都 load)
+tokenizer = load_tokenizer(model_path)
 
 # 依序喂文字資料 (prompt) 給模型
 for path, text in file_text_dict.items():
     filename_with_extension = os.path.basename(path)            # 取得有副檔名的檔名
     filename = filename_with_extension.split('.')[0]            # 取得沒有副檔名的檔名
     new_path = f"{summary_output_path}{filename}.txt"           # 摘要檔案的路徑
-    text_to_summary_file(text, new_path, model_path=model_path, temperature=0.5) # 產生摘要檔案
+    text_to_summary_file(text, new_path, model_path=model_path, temperature=0.5, tokenizer=tokenizer) # 產生摘要檔案
 
 # 下面這個方法是把 summary 寫入特定路徑檔案們，而只在最一開始 load model 一次，可以省大量時間
 # 但是由於目前似乎記憶體不足，會執行到一半失敗
