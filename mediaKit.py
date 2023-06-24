@@ -12,6 +12,7 @@ import whisper
 from moviepy.editor import VideoFileClip
 import os 
 import time # 測試用
+import gc
 
 def media_to_text(media_path, model_size='base'):
     '''
@@ -24,7 +25,8 @@ def media_to_text(media_path, model_size='base'):
     print(f'whisper 正在轉換文字...')
     result = model.transcribe(media_path, fp16=False, language='zh')
     print('成功從 mp3 取得文字')
-    del model
+    del model # 清除記憶體
+    gc.collect() # 清除記憶體
     return result['text']
 
 def text_to_file(text, output_file_path=r'./out.txt'):
@@ -83,7 +85,9 @@ def media_list_to_text_dict(media_path_list, model_size='base'):
         text = result['text']
         out_dict[meida_path] = text
 
-    model = None # 釋放記憶體
+    # clean
+    del model # 釋放記憶體
+    gc.collect() # 釋放記憶體
 
     return out_dict
 

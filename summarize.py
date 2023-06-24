@@ -18,6 +18,7 @@ from fastchat.serve.inference import generate_stream
 from .fontcolor import bcolors
 import time
 import os
+import gc
 
 info_path = '/home/brick/yenslife/modelTool/test-text-data/information-short.txt'
 format_path = '/home/brick/yenslife/modelTool/train-format.json'
@@ -93,6 +94,7 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
             final_text = output_text[input_len:]
 
     del model # 釋放記憶體
+    gc.collect() # 釋放記憶體
 
     return final_text
 
@@ -154,6 +156,7 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
         summary_list.append(summary)
 
     del model # 釋放記憶體
+    gc.collect() # 釋放記憶體
 
     return summary_list
 
