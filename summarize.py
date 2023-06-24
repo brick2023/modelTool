@@ -43,10 +43,12 @@ def load_tokenizer(tokenizer_path=vicuna_7b_model_path, use_fast=True):
     print(f' tokenizer loading time: ', end_time - start_time)
     return tokenizer
 
-def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
+def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
-    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7)
+    函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
     將一串文字作大意總節
+    輸入：text: str, model_path: str, temperature: float, tokenizer: AutoTokenizer, model: AutoModelForCausalLM
+    如果有輸入 tokenizer 和 model，則會直接使用，不會再 load 一次
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     '''
 
@@ -69,7 +71,10 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
     }
     
     # 載入 tokenizer
-    tokenizer = load_tokenizer(model_path)
+    if tokenizer == None:
+        tokenizer = load_tokenizer(model_path)
+    else:
+        print('使用給定的 tokenizer')
 
     # 計算文字長度、token 長度，以利 debug
     input_len = len(prompt)
@@ -79,7 +84,10 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
         print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
 
     # 載入模型
-    model = load_model(model_path)
+    if model == None:
+        model = load_model(model_path)
+    else:
+        print('使用給定的 model')
 
     # 喂給模型
     print('輸入資料到模型中...')
@@ -93,6 +101,8 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7):
         if outputs['finish_reason'] == 'stop':
             final_text = output_text[input_len:]
 
+    # 釋放記憶體
+    del tokenizer # 釋放記憶體
     del model # 釋放記憶體
     gc.collect() # 釋放記憶體
 
@@ -156,6 +166,7 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
         summary_list.append(summary)
 
     del model # 釋放記憶體
+    del tokenizer
     gc.collect() # 釋放記憶體
 
     return summary_list
