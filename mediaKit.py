@@ -8,6 +8,7 @@ pip install moviepy
 '''
 
 import whisper
+from whisper.utils import get_writer
 # from .yt import yt_url_to_mp3 # 測試用
 from moviepy.editor import VideoFileClip
 import os 
@@ -28,6 +29,42 @@ def media_to_text(media_path, model_size='base'):
     del model # 清除記憶體
     gc.collect() # 清除記憶體
     return result['text']
+
+def media_to_srt_file(media_path, output_file_path=r'./out.srt', model_size='base'):
+    """
+    將 mp3 or mp4 轉成 srt 檔案
+    給第一個參數 mp3 or mp4 路徑
+    第二個參數是輸出 srt 路徑(預設為 ./out.srt)
+    第三個參數是要使用的轉換模型大小(預設為 base)
+    """
+    language = 'zh'
+    print(f'whisper model(模型大小為：{model_size}) 正在載入...')
+    model = whisper.load_model(model_size)
+    print(f'whisper 正在轉換文字...')
+    result = model.transcribe(media_path, fp16=False, language=language)
+    srt_writer = get_writer("srt", os.path.dirname(output_file_path))
+    srt_writer(result, media_path)
+    print(f'成功將文字輸出到檔案路徑:{output_file_path}')
+    return output_file_path
+
+def media_list_to_srt_files(media_path_list, output_dir=r'./test-text-data/', model_size='base'):
+    """
+    將 mp3 or mp4 的路徑 list 轉成 srt 檔案到指定的資料夾
+    第一個參數是 mp3 or mp4 的路徑 list
+    第二個參數是輸出 srt 路徑(預設為 ./test-text-data/)
+    第三個參數是要使用的轉換模型大小(預設為 base)
+    """
+    language = 'zh'
+    print(f'whisper model(模型大小為：{model_size}) 正在載入...')
+    model = whisper.load_model(model_size)
+    print(f'whisper 正在轉換文字...')
+    for path in media_path_list:
+        print(f'正在處理 {path}...')
+        result = model.transcribe(path, fp16=False, language=language)
+        srt_writer = get_writer("srt", output_dir)
+        srt_writer(result, path)
+        print(f'成功將文字輸出到檔案路徑:{output_dir}')
+    return output_dir
 
 def text_to_file(text, output_file_path=r'./out.txt'):
     '''
@@ -131,4 +168,9 @@ def media_list_to_text_files(media_path_list, output_file_path, model_size='base
 # pre_time = time.time()
 # print(media_list_to_text_files(new_path_list,output_file_path='./test-text-data/', model_size='base'))
 # print('time:', time.time() - pre_time)
+
+if __name__=='__main__':
+    # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
+    media_list_to_srt_files(['/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', '/home/brick/platform/src/video/company1/algorithm/Lec2.mp4'], './test-text-data/', model_size='base')
+
 
