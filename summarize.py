@@ -296,7 +296,7 @@ def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vi
     model: 預設 None
     '''
     summarize = file_text_to_summary_text(input_path, model_path, temperature, tokenizer, model)
-    f = open(input_path, 'w')
+    f = open(output_path, 'w')
     f.write(summarize)
     f.close()
     print(f'已將摘要寫入 {output_path}')
