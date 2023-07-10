@@ -13,16 +13,11 @@ def fuzzy_search(query, data):
     """
     results = []
     for item in data:
+        if item is None:
+            item = ''
         score = fuzz.ratio(query.lower(), item.lower())
         results.append((item, score))
     results.sort(key=lambda x: x[1], reverse=True) # 依照分數由高到低排序
-    return results
-
-def search2(query, data):
-    """
-    這個專門用來搜尋長篇文章(後還發現好像沒什麼差)
-    """
-    results = process.extract(query, data, scorer=fuzz.ratio, limit=10)
     return results
 
 if __name__=='__main__':
@@ -44,5 +39,4 @@ if __name__=='__main__':
     總體而言，這篇文章探討了如何在圖形上搜尋不同的方向，並且提到了一個重要的問題：如果一個圖形對不同的人進行探索，是否會出現重複。這個問題涉及到圖形上的路徑，並且可以通過BFS和DFS算法來解決。
     ''', 'ㄐㄐ', '靠北']
 
-    print(fuzzy_search('廣度優先搜尋', course_data2))
-    print(search2('廣度優先搜尋', course_data2))
+    print(fuzzy_search('廣度優先搜尋', course_data2)[0][1])
