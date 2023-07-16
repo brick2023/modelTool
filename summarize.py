@@ -301,4 +301,58 @@ def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vi
     f.close()
     print(f'已將摘要寫入 {output_path}')
 
+def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, tokenizer=None, model=None):
+    """
+    搜尋關鍵字，介紹關鍵字
+    """
+    prompt = f"""
+    human: 你現在是幫助學生學習的解惑助理，vicuna 小羊駝，請你扮演好這個角色。
+    assistant: 我會盡力的。
+    human: 請用幾句話簡單介紹一下{keyword}。
+    assistant: 以下是我對{keyword}的簡單介紹，
+    """
+    # 定義輸入參數
+    params = {
+        "prompt": prompt,
+        "temperature": temperature, # 隨機性，越靠近1越高越隨機
+        "max_new_tokens": 1000,
+        "stop": "==="
+    }
+    
+    # 載入 tokenizer
+    if tokenizer == None:
+        tokenizer = load_tokenizer(model_path)
+    else:
+        print('使用給定的 tokenizer')
 
+    # 計算文字長度、token 長度，以利 debug
+    input_len = len(prompt)
+    prompt_token_count = len(tokenizer.tokenize(prompt))
+    print('prompt token 總數(超過 2000 有 crash 的風險):', prompt_token_count)
+    if prompt_token_count > 2000:
+        print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
+
+    # 載入模型
+    if model == None:
+        model = load_model(model_path)
+    else:
+        print('使用給定的 model')
+
+    # 喂給模型
+    print('輸入資料到模型中...')
+    gen_str = generate_stream(model, tokenizer, params, 'cpu', context_len=2048, stream_interval=2)
+    final_text = ''
+
+    for outputs in gen_str:
+        output_text = outputs["text"]
+        # print((output_text[input_len:]).replace('\n', ' '), flush=True, end="\r") # 這個目前輸出怪怪的，之後改
+        # print(output_text[input_len:])
+        if outputs['finish_reason'] == 'stop':
+            final_text = output_text[input_len:]
+
+    # 釋放記憶體
+    del tokenizer # 釋放記憶體
+    del model # 釋放記憶體
+    gc.collect() # 釋放記憶體
+
+    return final_text
