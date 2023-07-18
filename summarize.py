@@ -306,10 +306,8 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     搜尋關鍵字，介紹關鍵字
     """
     prompt = f"""
-    human: 你現在是幫助學生學習的解惑助理，vicuna 小羊駝，請你扮演好這個角色。
-    assistant: 我會盡力的。
-    human: 請用幾句話簡單介紹一下{keyword}。
-    assistant: 以下是我對{keyword}的簡單介紹，
+human: 你現在是幫助學生學習的解惑助理，vicuna 小羊駝，請你扮演好這個角色。請用幾句話簡單介紹一下{keyword}。
+assistant:
     """
     # 定義輸入參數
     params = {
@@ -349,6 +347,8 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
         # print(output_text[input_len:])
         if outputs['finish_reason'] == 'stop':
             final_text = output_text[input_len:]
+
+    print('輸入資料到模型中...完成')
 
     # 釋放記憶體
     del tokenizer # 釋放記憶體
