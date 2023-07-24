@@ -22,6 +22,8 @@ def fuzzy_search(query, data):
 
 def parse_srt_file(filename):
     subtitles = []
+    if filename is None:
+        return subtitles
     with open(filename, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
