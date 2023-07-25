@@ -15,7 +15,7 @@ def fuzzy_search(query, data):
     for item in data:
         if item is None:
             item = ''
-        score = fuzz.ratio(query.lower(), item.lower())
+        score = fuzz.partial_ratio(query.lower(), item.lower())
         results.append((item, score))
     results.sort(key=lambda x: x[1], reverse=True) # 依照分數由高到低排序
     return results
