@@ -18,7 +18,26 @@ def fuzzy_search(query, data):
         score = fuzz.partial_ratio(query.lower(), item.lower())
         results.append((item, score))
     results.sort(key=lambda x: x[1], reverse=True) # 依照分數由高到低排序
+    result = results[0][1]
+    print('search resultis :', result)
     return results
+
+def video_sort_algorithm(keyword, srt_file, mode='accuracy'):
+    """
+    給定參數 keyword 和 srt_file，回傳相關程度的成績
+    也可以指定參數 mode 為 fuzzy 或 accuracy，預設為 accuracy
+    分別為模糊比對和精確比對
+    """
+    subtitles = [item[2] for item in parse_srt_file(srt_file)]
+    total_score = 0
+    for subtitle in subtitles:
+        if mode=='fuzzy':
+            score = fuzz.partial_ratio(keyword.lower(), subtitle.lower())
+        elif mode=='accuracy':
+            score = fuzz.ratio(keyword.lower(), subtitle.lower())
+        total_score += score
+    print(total_score)
+    return total_score
 
 def parse_srt_file(filename):
     subtitles = []
@@ -82,4 +101,5 @@ if __name__=='__main__':
     總體而言，這篇文章探討了如何在圖形上搜尋不同的方向，並且提到了一個重要的問題：如果一個圖形對不同的人進行探索，是否會出現重複。這個問題涉及到圖形上的路徑，並且可以通過BFS和DFS算法來解決。
     ''', 'ㄐㄐ', '靠北']
 
-    print(fuzzy_search('廣度優先搜尋', course_data2)[0][1])
+    # print(fuzzy_search('廣度優先搜尋', course_data2)[0][1])
+    video_sort_algorithm('greedy algorithm', '/Users/mac/brick/src/srt/company1/algorithm/Lec1.srt')
