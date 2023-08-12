@@ -30,11 +30,14 @@ def video_sort_algorithm(keyword, srt_file, mode='accuracy'):
     """
     subtitles = [item[2] for item in parse_srt_file(srt_file)]
     total_score = 0
+    score = 0
     for subtitle in subtitles:
         if mode=='fuzzy':
             score = fuzz.partial_ratio(keyword.lower(), subtitle.lower())
         elif mode=='accuracy':
             score = fuzz.ratio(keyword.lower(), subtitle.lower())
+        if score < 50:
+            score = 0
         total_score += score
     print(total_score)
     return total_score
@@ -68,6 +71,9 @@ def search_parsed_srt(keyword, data_list):
     
     # 將結果根據相關性進行排序，相關性高的排在前面
     result.sort(key=lambda x: x[0], reverse=True)
+
+    # 保留相關性高於 50 的結果
+    result = [data for data in result if data[0] >= 50]
     
     # 只保留資料本身，去掉相關性分數，只輸出前十
     sorted_data_list = [data[1] for data in result if data[0] >= 30]
