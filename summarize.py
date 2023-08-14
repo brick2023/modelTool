@@ -305,10 +305,7 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     """
     搜尋關鍵字，介紹關鍵字
     """
-    prompt = f"""
-human: 你現在是幫助學生學習的助理。請用繁體中文簡單介紹一下{keyword}。
-assistant:
-    """
+    prompt = f"human: 請用繁體中文簡單介紹一下{keyword}。assistant:"
     # 定義輸入參數
     params = {
         "prompt": prompt,
