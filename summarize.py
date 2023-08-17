@@ -336,20 +336,12 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     # 喂給模型
     print('輸入資料到模型中...')
     gen_str = generate_stream(model, tokenizer, params, 'cpu', context_len=2048, stream_interval=2)
-    final_text = ''
-
-    for outputs in gen_str:
-        output_text = outputs["text"]
-        # print((output_text[input_len:]).replace('\n', ' '), flush=True, end="\r") # 這個目前輸出怪怪的，之後改
-        # print(output_text[input_len:])
-        if outputs['finish_reason'] == 'stop':
-            final_text = output_text[input_len:]
-
+    
     print('輸入資料到模型中...完成')
 
     # 釋放記憶體
     del tokenizer # 釋放記憶體
     del model # 釋放記憶體
     gc.collect() # 釋放記憶體
-
-    return final_text
+    return gen_str
+    # return final_text
