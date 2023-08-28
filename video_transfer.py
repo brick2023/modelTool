@@ -4,6 +4,8 @@
 執行這個程式會去到"~/platform/src/img"裡面對應"~/platform/src/video"創建課程資料夾
 所有的課程資料夾中再創建一個screenshot和gif資料夾
 分別用來存當封面的課程影片的截圖和預覽用的gif
+當有新課程加入到src/video的話
+就直接再執行一次這個程式就可以了
 
 環境必須的套件：
 pip install moviepy
@@ -23,12 +25,15 @@ def video_screenshot(video_path: str , screenshot_file_path: str):
     lesson = video_path.replace(course_path , "") # Ex: "Lec01.mp4"
     lesson = lesson.replace(".mp4" , "") # Ex: "Lec01"
     
-    video = VideoFileClip(video_path)
-    
-    screenshot = video.save_frame(screenshot_file_path + lesson + ".jpg", t = (video.duration / 2))
-    print('ok')
-    video.close()
-    
+    screenshot_file = screenshot_file_path + lesson + ".jpg"
+    if os.path.exists(screenshot_file):
+        return
+    else:
+        video = VideoFileClip(video_path)
+        screenshot = video.save_frame(screenshot_file, t = (video.duration / 2))
+        print('ok')
+        video.close()
+
 def video_to_gif(video_path: str , gif_file_path:str):
     '''
     將影片分成6小段然後合併成一個影片
@@ -41,17 +46,22 @@ def video_to_gif(video_path: str , gif_file_path:str):
     lesson = video_path.replace(course_path , "") # Ex: "Lec01.mp4"
     lesson = lesson.replace(".mp4" , "") # Ex: "Lec01"
      
-    video = VideoFileClip(video_path)
-    secStart = video.duration / 6
-    segments = []
-    for i in range(1 , 6):
-        segment = video.subclip((secStart * i) - 1 , (secStart * i) + 1)
-        segments.append(segment)
+    gif_file = gif_file_path + lesson + ".gif"
+    
+    if os.path.exists(gif_file):
+        return
+    else:
+        video = VideoFileClip(video_path)
+        secStart = video.duration / 6
+        segments = []
+        for i in range(1 , 6):
+            segment = video.subclip((secStart * i) - 1 , (secStart * i) + 1)
+            segments.append(segment)
 
-    video_concat = concatenate_videoclips(segments)
-    video_concat.write_gif(gif_file_path + lesson + ".gif" , fps = 10)
-    print('ok')
-    video.close()
+        video_concat = concatenate_videoclips(segments)
+        video_concat.write_gif(gif_file , fps = 10)
+        print('ok')
+        video.close()
     
 def create_img_dir(video_dir_path: str):
     '''
@@ -109,5 +119,5 @@ if __name__=='__main__':
                 screenshot_file_path = os.path.join(img_file_path , "screenshot") # Ex: "~/platform/src/img/company1/algorithm/screenshot"
                 gif_file_path = os.path.join(img_file_path , "gif") # Ex: "~/platform/src/img/company1/algorithm/gif"
                 video_screenshot(lesson , screenshot_file_path)
-                video_to_gif(lesson , gif_file_path)    
-                  
+                video_to_gif(lesson , gif_file_path)
+                
