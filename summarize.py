@@ -325,7 +325,8 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     }
 
     # 載入模型, tokenizer
-    model, tokenizer = load_model(model_path)
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
 
     # 喂給模型
     print('輸入資料到模型中...')
