@@ -15,33 +15,44 @@ pip install fschat
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from fastchat.serve.inference import generate_stream 
-from .fontcolor import bcolors
+from fastchat.model.model_adapter import (
+    load_model,
+    get_conversation_template,
+    get_generate_stream_function,
+)
+# from .fontcolor import bcolors
+import torch
 import time
 import os
 import gc
 
 info_path = '/home/brick/yenslife/modelTool/test-text-data/information-short.txt'
 format_path = '/home/brick/yenslife/modelTool/train-format.json'
-vicuna_7b_model_path = "/home/brick/yenslife/model/vicuna-7b/"
+vicuna_7b_model_path = "lmsys/vicuna-7b-v1.5"
 # vicuna_13b_model_path = 'yenslife/vicuna-13b' # 在 huggingface 上面的
 
-def load_model(model_path=vicuna_7b_model_path, low_cpu_mem_usage=True):
-    print(f'正在載入模型 from {model_path}，可能需要等一下喔...')
-    start_time = time.time()
-    model = AutoModelForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=low_cpu_mem_usage)
-    print('模型載入完成')
-    end_time = time.time()
-    print(f"{model_path} loading time: ", end_time - start_time) # 計算 load tokenizer 和 model 的時間
-    return model
+# def load_model(model_path=vicuna_7b_model_path, low_cpu_mem_usage=True):
+#     torch.cuda.empty_cache()
+#     torch.backends.cuda.max_split_size_mb = 0
+#     print(f'正在載入模型 from {model_path}，可能需要等一下喔...')
+#     start_time = time.time()
+#     # model = AutoModelForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=low_cpu_mem_usage, device_map="cuda:0")
+#     # model = AutoModelForCausalLM.from_pretrained(model_path).to("cuda")
+#     model = load_model(model_path)
+#     print('模型載入完成')
+#     end_time = time.time()
+#     print(f"{model_path} loading time: ", end_time - start_time) # 計算 load tokenizer 和 model 的時間
+#     return model
 
-def load_tokenizer(tokenizer_path=vicuna_7b_model_path, use_fast=True):
-    print(f'正在載入 tokenizer(約 100 秒)...')
-    start_time = time.time()
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=use_fast)
-    print('tokenizer載入完成')
-    end_time = time.time()
-    print(f' tokenizer loading time: ', end_time - start_time)
-    return tokenizer
+# def load_tokenizer(tokenizer_path=vicuna_7b_model_path, use_fast=True):
+#     print(f'正在載入 tokenizer(約 100 秒)...')
+#     start_time = time.time()
+#     # tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=use_fast, device_map="auto")
+#     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+#     print('tokenizer載入完成')
+#     end_time = time.time()
+#     print(f' tokenizer loading time: ', end_time - start_time)
+#     return tokenizer
 
 def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
@@ -69,29 +80,22 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
         "max_new_tokens": 1000,
         "stop": "==="
     }
-    
-    # 載入 tokenizer
-    if tokenizer == None:
-        tokenizer = load_tokenizer(model_path)
-    else:
-        print('使用給定的 tokenizer')
-
-    # 計算文字長度、token 長度，以利 debug
-    input_len = len(prompt)
-    prompt_token_count = len(tokenizer.tokenize(prompt))
-    print('prompt token 總數(超過 2000 有 crash 的風險):', prompt_token_count)
-    if prompt_token_count > 2000:
-        print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
-
-    # 載入模型
-    if model == None:
-        model = load_model(model_path)
+   
+    # 載入模型, tokenizer
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
     else:
         print('使用給定的 model')
 
+    # 檢查顯卡
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    print('device:', device)
+
+    gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
+
     # 喂給模型
     print('輸入資料到模型中...')
-    gen_str = generate_stream(model, tokenizer, params, 'cpu', context_len=2048, stream_interval=2)
+    gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
     final_text = ''
 
     for outputs in gen_str:
@@ -119,14 +123,14 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
     """
 
     # 載入 tokenizer
-    if tokenizer == None:
-        tokenizer = load_tokenizer(model_path)
-    else:
-        print('使用給定的 tokenizer')
+    # if tokenizer == None:
+    #     tokenizer = load_tokenizer(model_path)
+    # else:
+    #     print('使用給定的 tokenizer')
 
-    # 載入模型
-    if model == None:
-        model = load_model(model_path)
+    # 載入模型, tokenizer
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
     else:
         print('使用給定的 model')
 
@@ -156,9 +160,15 @@ def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temper
         if prompt_token_count > 2000:
             print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
 
+        # 檢查顯卡
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        print('device:', device)
+
+        gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
+
         # 喂給模型
         print('輸入資料到模型中...')
-        gen_str = generate_stream(model, tokenizer, params, 'cpu', context_len=2048, stream_interval=2)
+        gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
         final_text = ''
 
         for outputs in gen_str:
@@ -313,29 +323,18 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
         "max_new_tokens": 1000,
         "stop": "==="
     }
-    
-    # 載入 tokenizer
-    if tokenizer == None:
-        tokenizer = load_tokenizer(model_path)
-    else:
-        print('使用給定的 tokenizer')
 
-    # 計算文字長度、token 長度，以利 debug
-    input_len = len(prompt)
-    prompt_token_count = len(tokenizer.tokenize(prompt))
-    print('prompt token 總數(超過 2000 有 crash 的風險):', prompt_token_count)
-    if prompt_token_count > 2000:
-        print(bcolors.WARNING + f"警告：模型({model_path})輸出可能出現無法預期的行為，因為 token > 2000 太多了，記憶體不堪負荷，目前還在想解決方案，拍謝" + bcolors.ENDC)
-
-    # 載入模型
-    if model == None:
-        model = load_model(model_path)
-    else:
-        print('使用給定的 model')
+    # 載入模型, tokenizer
+    model, tokenizer = load_model(model_path)
 
     # 喂給模型
     print('輸入資料到模型中...')
-    gen_str = generate_stream(model, tokenizer, params, 'cpu', context_len=2048, stream_interval=2)
+    
+    # 檢查顯卡
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    print('device:', device)
+
+    gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
     
     print('輸入資料到模型中...完成')
 
@@ -345,3 +344,9 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     gc.collect() # 釋放記憶體
     return gen_str
     # return final_text
+
+if __name__ == "__main__":
+    keyword = '珍珠奶茶'
+    gen_str = introduction(keyword=keyword)
+    for g in gen_str:
+        print('genstr:', g['text'])
