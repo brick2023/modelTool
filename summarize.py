@@ -315,7 +315,7 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     """
     搜尋關鍵字，介紹關鍵字
     """
-    prompt = f"human: 請用繁體中文簡單介紹一下{keyword}。assistant:"
+    prompt = f"human: 請用繁體中文簡單介紹一下{keyword}，如果要學習相關的知識，應該搜尋哪些關鍵字。assistant:"
     # 定義輸入參數
     params = {
         "prompt": prompt,
