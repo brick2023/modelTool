@@ -63,11 +63,20 @@ def parse_srt_file(filename):
 
 def search_parsed_srt(keyword, data_list):
     result = []
-    
+    idx = 0
     for data in data_list:
         time_start, time_end, subtitle = data
         similarity = fuzz.ratio(subtitle, keyword)
+        # 讓字幕有前後文，記得判斷邊界，還有 tuple 不支援修改，所以要轉成 list
+        data = list(data)
+        # avoid list out of range
+        if idx > 1:
+            data[2] = data_list[idx-2][2] + data_list[idx-1][2] + data[2]
+        if idx < len(data_list)-3:
+            data[2] = data[2] + data_list[idx+1][2] + data_list[idx+2][2] + data_list[idx+3][2]
+        data = tuple(data)
         result.append((similarity, data))
+        idx += 1
     
     # 將結果根據相關性進行排序，相關性高的排在前面
     result.sort(key=lambda x: x[0], reverse=True)
@@ -86,6 +95,7 @@ def srt_search(keyword, filepath):
     def time_key(time_str):
         return datetime.strptime(time_str, '%H:%M:%S,%f')
     result.sort(key=lambda x: time_key(x[0]))
+    # print(result)
     return result
 
 if __name__=='__main__':
