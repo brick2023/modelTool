@@ -64,14 +64,13 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
     '''
 
     prompt = f'''
-    human: 請閱讀以下文章：
-    """
-    {text}
-    """
-    請在300個繁體中文字內，總結以上這篇文章
+human: 請閱讀以下文章：
+"""
+{text}
+"""
+請在300個繁體中文字內，總結以上這篇文章
 
-    Assistant:
-    '''
+Assistant:這篇文章講'''
 
     # 定義輸入參數
     params = {
@@ -80,6 +79,8 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
         "max_new_tokens": 1000,
         "stop": "==="
     }
+
+    input_len = len(prompt)
    
     # 載入模型, tokenizer
     if model == None or tokenizer == None:
