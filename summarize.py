@@ -106,7 +106,7 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
 
     # 計算文字長度、token 長度，準備分段
     prompt_token_count = len(tokenizer.tokenize(long_text))
-    avg_paragraphs_per_segment = round(650/prompt_token_count * len(long_text))
+    avg_paragraphs_per_segment = round(750/prompt_token_count * len(long_text))
     num_segments = round(len(long_text)/avg_paragraphs_per_segment)
     print('avg_paragraphs_per_segment:', avg_paragraphs_per_segment)
 
