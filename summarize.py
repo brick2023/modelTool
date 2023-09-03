@@ -92,8 +92,6 @@ Assistant:這篇文章講述了'''
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print('device:', device)
 
-    gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
-
     # 喂給模型
     print('輸入資料到模型中...')
     gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
