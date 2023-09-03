@@ -386,9 +386,16 @@ if __name__ == "__main__":
         summary = '' 
         # 向有顯卡的主機請求
         response = requests.post(custom_url, data={'text': long_text})
-        summary = response.text
-        print(summary)
-        filename = os.path.basename(file)
-        f = open(output_dir_path + filename, 'w')
-        f.write(summary)
-        f.close()
+
+        if response.status_code == 200:
+            summary = response.text
+            print(summary)
+            filename = os.path.basename(file)
+            output_file_path = os.path.join(output_dir_path, filename)
+            
+            # 將摘要寫入輸出文件
+            with open(output_file_path, 'w') as output_file:
+                output_file.write(summary)
+            print(f'Summary for {filename} generated and saved.')
+        else:
+            print(f'Failed to generate summary for {file}: {response.status_code}')
