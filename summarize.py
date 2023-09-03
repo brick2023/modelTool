@@ -373,28 +373,22 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     # return final_text
 
 if __name__ == "__main__":
-    # keyword = '珍珠奶茶'
-    # gen_str = introduction(keyword=keyword)
-    # for g in gen_str:
-    #     print('genstr:', g['text'])
-
-    # 將指定資料夾底下的文字檔案，做摘要總結，並輸出到指定資料夾
+    # 將指定資料夾底下的文字檔案傳給遠端主機
     input_dir_path = '/home/brick/platform/src/video-info/company1/algorithm/'
     output_dir_path = '/home/brick/platform/src/summary/company1/algorithm/'
-    custom_url = f'http://brick2.yenslife.top:2023/long_text_to_summary' # http://140.116.82.218:2023
+    # custom_url = f'http://brick2.yenslife.top:2023/long_text_to_summary' # http://140.116.82.218:2023
+    custom_url = f'http://brick2.yenslife.top:2023/store_long_text' # http://140.116.82.218:2023
     
     file_list = [os.path.join(input_dir_path, file) for file in os.listdir(input_dir_path)] # 這邊是為了把檔案路徑變成 list
+    # file_list = ['/home/brick/platform/src/video-info/company1/algorithm/Lec1.txt']
+    
+    print(file_list)
     for file in file_list:
+        # 讀取檔案
         with open(file, 'r') as f:
             long_text = f.read()
-        import urllib.request
-        import requests
-        summary = '' 
-        # 向有顯卡的主機請求
-        response = requests.post(custom_url, data={'text': long_text}, timeout=5)
-        summary = response.text
-        print(summary)
-        filename = os.path.basename(file)
-        f = open(output_dir_path + filename, 'w')
-        f.write(summary)
-        f.close()
+        print(file.replace('brick', 'brick2'))
+        
+        response = requests.post(custom_url, data={'text': long_text, 'path': file.replace('brick', 'brick2')})
+        print(response.text)
+        
