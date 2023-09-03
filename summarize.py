@@ -88,7 +88,7 @@ Assistant:這篇文章講述了'''
 
     return final_text
 
-def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
+def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None, last_summary=None):
     '''
     函式樣式：long_text_to_summarize(long_text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
     將一串文字作大意總節
@@ -124,9 +124,15 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
         print(summary)
         summary_total += summary
 
-    # 若還是太長，再分段，直到只剩下一段
+    # 若還是太長，再分段，直到只剩下一段，可能會有兩段一直循環的問題
+    # 解決方法：如果分段後的摘要和上一段一樣，就不要再分段了
+
+    if last_summary == summary_total:
+        print('分段後的摘要和上一段一樣，不再分段')
+        return summary_total
+    
     if num_segments > 1:
-        summary_total = long_text_to_summary(summary_total, model_path, temperature, tokenizer, model)
+        summary_total = long_text_to_summary(summary_total, model_path, temperature, tokenizer, model, last_summary=summary_total)
 
     return summary_total
         
@@ -385,7 +391,7 @@ if __name__ == "__main__":
         import requests
         summary = '' 
         # 向有顯卡的主機請求
-        response = requests.post(custom_url, data={'text': long_text})
+        response = requests.post(custom_url, data={'text': long_text}, timeout=5)
         summary = response.text
         print(summary)
         filename = os.path.basename(file)
