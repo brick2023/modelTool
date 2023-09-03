@@ -31,29 +31,6 @@ format_path = '/home/brick/yenslife/modelTool/train-format.json'
 vicuna_7b_model_path = "lmsys/vicuna-7b-v1.5"
 # vicuna_13b_model_path = 'yenslife/vicuna-13b' # 在 huggingface 上面的
 
-# def load_model(model_path=vicuna_7b_model_path, low_cpu_mem_usage=True):
-#     torch.cuda.empty_cache()
-#     torch.backends.cuda.max_split_size_mb = 0
-#     print(f'正在載入模型 from {model_path}，可能需要等一下喔...')
-#     start_time = time.time()
-#     # model = AutoModelForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=low_cpu_mem_usage, device_map="cuda:0")
-#     # model = AutoModelForCausalLM.from_pretrained(model_path).to("cuda")
-#     model = load_model(model_path)
-#     print('模型載入完成')
-#     end_time = time.time()
-#     print(f"{model_path} loading time: ", end_time - start_time) # 計算 load tokenizer 和 model 的時間
-#     return model
-
-# def load_tokenizer(tokenizer_path=vicuna_7b_model_path, use_fast=True):
-#     print(f'正在載入 tokenizer(約 100 秒)...')
-#     start_time = time.time()
-#     # tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=use_fast, device_map="auto")
-#     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-#     print('tokenizer載入完成')
-#     end_time = time.time()
-#     print(f' tokenizer loading time: ', end_time - start_time)
-#     return tokenizer
-
 def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
     函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
@@ -110,6 +87,50 @@ Assistant:這篇文章講述了'''
     gc.collect() # 釋放記憶體
 
     return final_text
+
+def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
+    '''
+    函式樣式：long_text_to_summarize(long_text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
+    將一串文字作大意總節
+    輸入：long_text: str, model_path: str, temperature: float, tokenizer: AutoTokenizer, model: AutoModelForCausalLM
+    如果有輸入 tokenizer 和 model，則會直接使用，不會再 load 一次
+    預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
+    和 text_to_summary 的差別是，他會幫你把長文字切成短的，然後再 call text_to_summary 去做
+    '''
+
+    # 載入模型, tokenizer
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
+    else:
+        print('使用給定的 model')
+
+    # 計算文字長度、token 長度，準備分段
+    prompt_token_count = len(tokenizer.tokenize(long_text))
+    avg_paragraphs_per_segment = round(650/prompt_token_count * len(long_text))
+    num_segments = round(len(long_text)/avg_paragraphs_per_segment)
+    print('avg_paragraphs_per_segment:', avg_paragraphs_per_segment)
+
+    # 將長文字分段
+    start_idx = 0
+    segments = []
+    for i in range(num_segments):
+        end_idx = start_idx + avg_paragraphs_per_segment
+        segment = ''.join(long_text[start_idx:end_idx])
+        segments.append(segment)
+        start_idx = end_idx
+    summary_total = ''
+    for text in segments:
+        summary = text_to_summary(text=text, model=model, tokenizer=tokenizer, temperature=temperature)
+        print(summary)
+        summary_total += summary
+
+    # 若還是太長，再分段，直到只剩下一段
+    if num_segments > 1:
+        summary_total = long_text_to_summary(summary_total, model_path, temperature, tokenizer, model)
+
+    return summary_total
+        
+
 
 def text_list_to_summary_list(text_list, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
