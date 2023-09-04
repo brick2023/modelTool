@@ -135,7 +135,7 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
         return summary_total
     
     if num_segments > 1:
-        summary_total = long_text_to_summary(summary_total, model_path, temperature, tokenizer, model, last_summary=summary_total)
+        summary_total = long_text_to_summary(summary_total, model_path, temperature, tokenizer, model, circle_check=circle_check)
 
     return summary_total
         
