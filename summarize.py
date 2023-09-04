@@ -124,8 +124,8 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
         print(summary)
         summary_total += summary
 
-    # 若還是太長，再分段，直到只剩下一段，可能會有兩段一直循環的問題
-    # 解決方法：如果分段後的摘要和上一段一樣，就不要再分段了
+    # 若還是太長，再分段，直到只剩下一段，但可能會有兩段一直循環的問題
+    # 解決方法：如果發現兩段一直循環，就直接回傳 summary_total
 
     if num_segments == 2:
         circle_check += 1
