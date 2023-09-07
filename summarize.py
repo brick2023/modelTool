@@ -127,11 +127,19 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
     # 若還是太長，再分段，直到只剩下一段，但可能會有兩段一直循環的問題
     # 解決方法：如果發現兩段一直循環，就直接回傳 summary_total
 
-    if num_segments == 2:
+    if num_segments <= 3:
+        print('num_segments <= 3')
+        print('summary_total:', summary_total)
         circle_check += 1
+    
+    if num_segments == 1:
+        print('num_segments == 1')
+        print('summary_total:', summary_total)
+        return summary_total
 
-    if circle_check > 5:
+    if circle_check > 6:
         print('循環問題，要中斷了')
+        print('summary_total:', summary_total)
         return summary_total
     
     if num_segments > 1:
@@ -394,4 +402,3 @@ if __name__ == "__main__":
         
         response = requests.post(custom_url, data={'text': long_text, 'path': file.replace('brick', 'brick2')})
         print(response.text)
-        
