@@ -5,6 +5,8 @@
 環境必須的套件：
 pip install openai-whisper 
 pip install moviepy
+
+conda install -c conda-forge ffmpeg
 '''
 
 import whisper
@@ -43,6 +45,10 @@ def media_to_srt_file(media_path, output_file_path=r'./out.srt', model_size='bas
     print(f'whisper 正在轉換文字...')
     result = model.transcribe(media_path, fp16=False, language=language)
     srt_writer = get_writer("srt", os.path.dirname(output_file_path))
+    directory = os.path.dirname(output_file_path)
+    # 檢查資料夾是否存在
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     srt_writer(result, media_path)
     print(f'成功將文字輸出到檔案路徑:{output_file_path}')
     return output_file_path
@@ -150,27 +156,55 @@ def media_list_to_text_files(media_path_list, output_file_path, model_size='base
         f.write(value)
     print(f'已寫入所有檔案到{output_file_path}')
     return output_file_path
-
-
-### test for youtube video to .txt
-# my_url = "https://youtu.be/NlzVaeudj6E"
-# mp3_file = yt_url_to_mp3(my_url)
-# mp3_to_text_file(mp3_path=mp3_file, model_size='large')
-# import os
-# print('刪除 mp3 file')
-# os.system(f'rm {mp3_file}')
-### test for mp4 to .txt
-# mp4_to_text_file('./test-video/test-video.mp4')
-### test for media_list_to_text_files
-# new_path_list = []
-# for mp4 in os.listdir('./test-video/'):
-#     new_path_list.append(os.getcwd() + '/test-video/' + mp4)
-# pre_time = time.time()
-# print(media_list_to_text_files(new_path_list,output_file_path='./test-text-data/', model_size='base'))
-# print('time:', time.time() - pre_time)
-
+def media_list_to_text_and_srt_files(media_path_list, text_output_file_path, srt_output_file_path, model_size='base'):
+    """
+    給定 mp3 or mp4 路徑 list，將裡面的檔案都轉成 text 和 srt
+    會做出一個 dict() -> [影片名稱]:[text]，並將他輸出到 text_output_file_path, srt_output_file_path
+    檔名為 mp3 or mp4 的檔名
+    """
+    language = 'zh'
+    print(f'whisper model(模型大小為：{model_size}) 正在載入...')
+    model = whisper.load_model(model_size)
+    print(f'whisper 正在轉換文字...')
+    for path in media_path_list:
+        print(f'正在處理 {path}...')
+        result = model.transcribe(path, fp16=False, language=language)
+        # 先處理 text
+        text = result['text']
+        filename = os.path.basename(path)
+        filename = filename.split('.')[0]
+        f = open(f'{text_output_file_path}/{filename}.txt', 'w')
+        f.write(text)
+        f.close()
+        print(f'成功將文字輸出到檔案路徑:{text_output_file_path}')
+        # 再處理 srt
+        # 注意要先建立資料夾
+        directory = os.path.dirname(srt_output_file_path)
+        # 檢查資料夾是否存在
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        srt_writer = get_writer("srt", srt_output_file_path)
+        srt_writer(result, path)
+        print(f'成功將文字輸出到檔案路徑:{srt_output_file_path}')
+    return text_output_file_path, srt_output_file_path
+    
 if __name__=='__main__':
     # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
-    media_list_to_srt_files(['/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', '/home/brick/platform/src/video/company1/algorithm/Lec2.mp4'], './test-text-data/', model_size='base')
+    # media_list_to_srt_files(['/home/brick2/platform/src/video/company1/algorithm/Lec14.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec15.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec16.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec17.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec18.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec19.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec20.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec21.mp4'
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec22.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec23.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec24.mp4'], './test-text-data/', model_size='large')
+    # media_list_to_text_files(['/home/brick2/platform/src/video/company1/algorithm/Lec14.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec15.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec16.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec17.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec18.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec19.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec20.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec21.mp4'
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec22.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec23.mp4',
+    #                          '/home/brick2/platform/src/video/company1/algorithm/Lec24.mp4'], './test-text-data2/', model_size='large')
+    # media_list_to_text_and_srt_files([ '/home/brick2/platform/src/video/company1/algorithm/Lec21.mp4',
+    #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec22.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec23.mp4',
+    #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec24.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
+    media_list_to_text_and_srt_files(['/home/brick2/platform/src/video/company1/algorithm/Lec13.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
 
 
