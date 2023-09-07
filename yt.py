@@ -113,11 +113,12 @@ if __name__=='__main__':
     for name, url in company2_video_name_url.items():
         name = name.replace(' ', '_')
         print(name)
-        output_path = '/home/brick/platform/src/video/company2/Computer-science-old-exam/'
+        output_path = '/home/brick2/platform/src/video/company2/Computer-science-old-exam/'
+        # 若是沒有資料夾就建立
         if not os.path.exists(output_path):
-            os.mkdir(output_path)
+            os.makedirs(output_path)
         try:
-            yt_url_to_mp4(url, output_path='/home/brick/platform/src/video/company2/Computer-science-old-exam/', filename=name+'.mp4')
+            yt_url_to_mp4(url, output_path='/home/brick2/platform/src/video/company2/Computer-science-old-exam/', filename=name+'.mp4')
         except Exception as e:
             print(e)
             print('error:', e)
