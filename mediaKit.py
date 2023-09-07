@@ -206,5 +206,3 @@ if __name__=='__main__':
     #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec22.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec23.mp4',
     #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec24.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
     media_list_to_text_and_srt_files(['/home/brick2/platform/src/video/company1/algorithm/Lec13.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
-
-
