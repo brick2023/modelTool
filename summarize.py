@@ -132,12 +132,12 @@ def long_text_to_summary(long_text, model_path=vicuna_7b_model_path, temperature
         print('summary_total:', summary_total)
         circle_check += 1
     
-    if num_segments == 1:
+    if num_segments == 1 and circle_check > 5:
         print('num_segments == 1')
         print('summary_total:', summary_total)
         return summary_total
 
-    if circle_check > 6:
+    if circle_check > 8:
         print('循環問題，要中斷了')
         print('summary_total:', summary_total)
         return summary_total
