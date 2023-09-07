@@ -170,7 +170,7 @@ def media_list_to_text_files(media_path_list, output_file_path, model_size='base
 # print('time:', time.time() - pre_time)
 
 if __name__=='__main__':
-    # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
-    media_list_to_srt_files(['/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', '/home/brick/platform/src/video/company1/algorithm/Lec2.mp4'], './test-text-data/', model_size='base')
+    # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='large')
+    media_list_to_srt_files(['/home/brick/platform/src/video/company1/algorithm/Lec13.mp4', '/home/brick/platform/src/video/company1/algorithm/Lec14.mp4'], './test-text-data/', model_size='large')
 
 
