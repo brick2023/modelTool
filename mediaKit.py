@@ -174,7 +174,9 @@ def media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_
         # 先處理 text
         text = result['text']
         text = cc.convert(text)
-        with open(path, 'w') as f:
+        filename = os.path.basename(path)
+        filename = filename.split('.')[0]
+        with open(f'{text_output_dir_path}/{filename}.txt', 'w') as f:
             f.write(text)
         print(f'成功將文字輸出到檔案路徑:{text_output_dir_path}(已完成繁體中文轉換)')
         # 再處理 srt
