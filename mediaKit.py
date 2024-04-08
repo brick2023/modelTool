@@ -174,11 +174,8 @@ def media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_
         # 先處理 text
         text = result['text']
         text = cc.convert(text)
-        filename = os.path.basename(path)
-        filename = filename.split('.')[0]
-        f = open(f'{text_output_dir_path}/{filename}.txt', 'w')
-        f.write(text)
-        f.close()
+        with open(path, 'w') as f:
+            f.write(text)
         print(f'成功將文字輸出到檔案路徑:{text_output_dir_path}(已完成繁體中文轉換)')
         # 再處理 srt
         # 注意要先建立資料夾
@@ -188,6 +185,8 @@ def media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_
             os.makedirs(directory)
         srt_writer = get_writer("srt", srt_output_dir_path)
         srt_writer(result, path)
+        filename = os.path.basename(path)
+        filename = filename.split('.')[0]
         str_output_file_path = f'{srt_output_dir_path}/{filename}.srt'
         print(f'成功srt輸出到檔案路徑:{str_output_file_path}')
         # 轉換繁體中文
@@ -209,6 +208,11 @@ def dir_to_text_and_srt_files(input_dir_path, text_output_dir_path, srt_output_d
     print(f'file_list: {file_list}')
     media_path_list = [os.path.join(input_dir_path, file) for file in file_list]
     print(f'media_path_list: {media_path_list}')
+    # 如果 text_output_dir_path 不存在就建立
+    if not os.path.exists(text_output_dir_path):
+        os.makedirs(text_output_dir_path)
+    if not os.path.exists(srt_output_dir_path):
+        os.makedirs(srt_output_dir_path)
     return media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_output_dir_path, model_size)
     
 if __name__=='__main__':
