@@ -21,7 +21,7 @@ from fastchat.model.model_adapter import (
     get_conversation_template,
     get_generate_stream_function,
 )
-# from .fontcolor import bcolors
+from .fontcolor import bcolors
 import torch
 import time
 import os
@@ -353,6 +353,16 @@ def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vi
     f.close()
     print(f'已將摘要寫入 {output_path}')
 
+def dir_text_to_summary_files(input_dir_path, output_dir_path='./', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
+    """
+    將資料夾底下的所有純文字檔案輸出摘要到指定資料夾
+    input_dir_path: 輸入資料夾路徑
+    output_dir_path: 輸出資料夾路徑 (預設為當前資料夾)
+    """
+    file_list = [os.path.join(input_dir_path, file) for file in os.listdir(input_dir_path)] # 這邊是為了把檔案路徑變成 list
+    file_list_to_summary_files(file_list, output_dir_path, model_path, temperature, tokenizer, model)
+    return output_dir_path
+
 def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, tokenizer=None, model=None):
     """
     搜尋關鍵字，介紹關鍵字
@@ -389,21 +399,24 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     # return final_text
 
 if __name__ == "__main__":
-    # 將指定資料夾底下的文字檔案傳給遠端主機
-    input_dir_path = '/home/brick/platform/src/video-info/company1/algorithm/'
-    output_dir_path = '/home/brick/platform/src/summary/company1/algorithm/'
-    # custom_url = f'http://brick2.yenslife.top:2023/long_text_to_summary' # http://140.116.82.218:2023
-    custom_url = f'http://brick2.yenslife.top:2023/store_long_text' # http://140.116.82.218:2023
+    # # 將指定資料夾底下的文字檔案傳給遠端主機
+    # input_dir_path = '/home/brick/platform/src/video-info/company1/algorithm/'
+    # output_dir_path = '/home/brick/platform/src/summary/company1/algorithm/'
+    # # custom_url = f'http://brick2.yenslife.top:2023/long_text_to_summary' # http://140.116.82.218:2023
+    # custom_url = f'http://brick2.yenslife.top:2023/store_long_text' # http://140.116.82.218:2023
     
-    file_list = [os.path.join(input_dir_path, file) for file in os.listdir(input_dir_path)] # 這邊是為了把檔案路徑變成 list
-    # file_list = ['/home/brick/platform/src/video-info/company1/algorithm/Lec1.txt']
+    # file_list = [os.path.join(input_dir_path, file) for file in os.listdir(input_dir_path)] # 這邊是為了把檔案路徑變成 list
+    # # file_list = ['/home/brick/platform/src/video-info/company1/algorithm/Lec1.txt']
     
-    print(file_list)
-    for file in file_list:
-        # 讀取檔案
-        with open(file, 'r') as f:
-            long_text = f.read()
-        print(file.replace('brick', 'brick2'))
+    # print(file_list)
+    # for file in file_list:
+    #     # 讀取檔案
+    #     with open(file, 'r') as f:
+    #         long_text = f.read()
+    #     print(file.replace('brick', 'brick2'))
         
-        response = requests.post(custom_url, data={'text': long_text, 'path': file.replace('brick', 'brick2')})
-        print(response.text)
+    #     response = requests.post(custom_url, data={'text': long_text, 'path': file.replace('brick', 'brick2')})
+    #     print(response.text)
+    input_dir_path = "/home/brick2/platform2024/LLM-automation/1_高一生物/"
+    output_dir_path = "/home/brick2/platform2024/LLM-automation/1_高一生物_summary/"
+    dir_text_to_summary_files(input_dir_path, output_dir_path)
