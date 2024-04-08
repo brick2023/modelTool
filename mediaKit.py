@@ -198,6 +198,18 @@ def media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_
             f.write(text)
         print(f'成功將 {str_output_file_path} 轉換成繁體中文')
     return text_output_dir_path, srt_output_dir_path
+
+def dir_to_text_and_srt_files(input_dir_path, text_output_dir_path, srt_output_dir_path, model_size='base'):
+    """
+    給定一個資料夾，將裡面的 mp3 or mp4 檔案都轉成 text 和 srt
+    會做出一個 dict() -> [影片名稱]:[text]，並將他輸出到 text_output_dir_path, srt_output_dir_path
+    檔名為 mp3 or mp4 的檔名
+    """
+    file_list = os.listdir(input_dir_path)
+    print(f'file_list: {file_list}')
+    media_path_list = [os.path.join(input_dir_path, file) for file in file_list]
+    print(f'media_path_list: {media_path_list}')
+    return media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_output_dir_path, model_size)
     
 if __name__=='__main__':
     # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
