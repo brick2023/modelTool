@@ -46,13 +46,13 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
     text = cc.convert(text)
 
     prompt = f'''
-human: 請閱讀以下文章：
+human: 請參考以下影片內容：
 """
 {text}
 """
-請在300個繁體中文字內，總結以上這篇文章
+請在300個繁體中文字內，總結這部教學影片的內容
 
-Assistant:這篇文章講述了'''
+Assistant:'''
 
     # 定義輸入參數
     params = {
