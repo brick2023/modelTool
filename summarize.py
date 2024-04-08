@@ -354,14 +354,29 @@ def file_text_to_summary_file(input_path, output_path='./out.txt', model_path=vi
     f.close()
     print(f'已將摘要寫入 {output_path}')
 
-def dir_text_to_summary_files(input_dir_path, output_dir_path='./', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
+def dir_long_text_to_summary_files(input_dir_path, output_dir_path='./', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     將資料夾底下的所有純文字檔案輸出摘要到指定資料夾
     input_dir_path: 輸入資料夾路徑
     output_dir_path: 輸出資料夾路徑 (預設為當前資料夾)
     """
     file_list = [os.path.join(input_dir_path, file) for file in os.listdir(input_dir_path)] # 這邊是為了把檔案路徑變成 list
-    file_list_to_summary_files(file_list, output_dir_path, model_path, temperature, tokenizer, model)
+    # 如果 output_dir_path 不存在，建立它
+    if not os.path.exists(output_dir_path):
+        os.makedirs(output_dir_path)
+    # load model
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
+    
+    for file in file_list:
+        long_text = ''
+        with open(file, 'r') as f:
+            long_text = f.read()
+        summary = long_text_to_summary(long_text, model_path, temperature, tokenizer, model)
+        filename_with_extension = os.path.basename(file)
+        output_file_path = os.path.join(output_dir_path, f'{filename_with_extension}')
+        with open(output_file_path, 'w') as f:
+            f.write(summary)
     return output_dir_path
 
 def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, tokenizer=None, model=None):
