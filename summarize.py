@@ -15,6 +15,7 @@ pip install fschat
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from fastchat.serve.inference import generate_stream 
+from opencc import OpenCC
 from fastchat.model.model_adapter import (
     load_model,
     get_conversation_template,
@@ -39,6 +40,10 @@ def text_to_summary(text, model_path=vicuna_7b_model_path, temperature=0.7, toke
     如果有輸入 tokenizer 和 model，則會直接使用，不會再 load 一次
     預設 model 為 vicuna-13b, temperature = 0.7 (可視情況做調整)
     '''
+    
+    # 簡繁轉換
+    cc = OpenCC('s2twp')
+    text = cc.convert(text)
 
     prompt = f'''
 human: 請閱讀以下文章：
