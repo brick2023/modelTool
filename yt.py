@@ -5,7 +5,7 @@ pip install pytube
 pip install pydub
 如果遇到 pytube issue 可以參考：https://github.com/pytube/pytube/issues/1678
 '''
-from pytube import YouTube 
+from pytube import YouTube, Playlist
 from pydub import AudioSegment
 
 import os
@@ -50,6 +50,15 @@ def yt_url_to_mp4(url, output_path='./', filename='yt-video.mp4'):
     # assert mp4_360p_files is not None
     mp4_file.download(output_path, filename=filename)
     print('影片下載完成')
+
+def yt_playlist_url_to_mp4(playlist_url, output_path='./', filename='yt-video.mp4'):
+    playlist = Playlist(playlist_url)
+    print('download...')
+    for i in playlist.video_urls:
+        print(i)
+        yt = YouTube(i)                      # 讀取影片
+        yt.streams.filter().get_highest_resolution().download(output_path=output_path)   # 下載為最高畫質影片
+    print('ok!')
 
 # test
 if __name__=='__main__':
