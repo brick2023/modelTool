@@ -16,6 +16,7 @@ from moviepy.editor import VideoFileClip
 import os 
 import time # 測試用
 import gc
+from opencc import OpenCC
 
 def media_to_text(media_path, model_size='base'):
     '''
@@ -156,37 +157,47 @@ def media_list_to_text_files(media_path_list, output_file_path, model_size='base
         f.write(value)
     print(f'已寫入所有檔案到{output_file_path}')
     return output_file_path
-def media_list_to_text_and_srt_files(media_path_list, text_output_file_path, srt_output_file_path, model_size='base'):
+def media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_output_dir_path, model_size='base'):
     """
     給定 mp3 or mp4 路徑 list，將裡面的檔案都轉成 text 和 srt
-    會做出一個 dict() -> [影片名稱]:[text]，並將他輸出到 text_output_file_path, srt_output_file_path
+    會做出一個 dict() -> [影片名稱]:[text]，並將他輸出到 text_output_dir_path, srt_output_dir_path
     檔名為 mp3 or mp4 的檔名
     """
     language = 'zh'
     print(f'whisper model(模型大小為：{model_size}) 正在載入...')
     model = whisper.load_model(model_size)
     print(f'whisper 正在轉換文字...')
+    cc = OpenCC('s2twp')
     for path in media_path_list:
         print(f'正在處理 {path}...')
         result = model.transcribe(path, fp16=False, language=language)
         # 先處理 text
         text = result['text']
+        text = cc.convert(text)
         filename = os.path.basename(path)
         filename = filename.split('.')[0]
-        f = open(f'{text_output_file_path}/{filename}.txt', 'w')
+        f = open(f'{text_output_dir_path}/{filename}.txt', 'w')
         f.write(text)
         f.close()
-        print(f'成功將文字輸出到檔案路徑:{text_output_file_path}')
+        print(f'成功將文字輸出到檔案路徑:{text_output_dir_path}(已完成繁體中文轉換)')
         # 再處理 srt
         # 注意要先建立資料夾
-        directory = os.path.dirname(srt_output_file_path)
+        directory = os.path.dirname(srt_output_dir_path)
         # 檢查資料夾是否存在
         if not os.path.exists(directory):
             os.makedirs(directory)
-        srt_writer = get_writer("srt", srt_output_file_path)
+        srt_writer = get_writer("srt", srt_output_dir_path)
         srt_writer(result, path)
-        print(f'成功將文字輸出到檔案路徑:{srt_output_file_path}')
-    return text_output_file_path, srt_output_file_path
+        str_output_file_path = f'{srt_output_dir_path}/{filename}.srt'
+        print(f'成功srt輸出到檔案路徑:{str_output_file_path}')
+        # 轉換繁體中文
+        with open(str_output_file_path, 'r') as f:
+            text = f.read()
+        text = cc.convert(text)
+        with open(str_output_file_path, 'w') as f:
+            f.write(text)
+        print(f'成功將 {str_output_file_path} 轉換成繁體中文')
+    return text_output_dir_path, srt_output_dir_path
     
 if __name__=='__main__':
     # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
@@ -205,4 +216,5 @@ if __name__=='__main__':
     # media_list_to_text_and_srt_files([ '/home/brick2/platform/src/video/company1/algorithm/Lec21.mp4',
     #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec22.mp4', '/home/brick2/platform/src/video/company1/algorithm/Lec23.mp4',
     #                                   '/home/brick2/platform/src/video/company1/algorithm/Lec24.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
-    media_list_to_text_and_srt_files(['/home/brick2/platform/src/video/company1/algorithm/Lec13.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
+    # media_list_to_text_and_srt_files(['/home/brick2/platform/src/video/company1/algorithm/Lec13.mp4'], '/home/brick2/platform/src/video-info/company1/algorithm/', '/home/brick2/platform/src/srt/company1/algorithm/', model_size='large')
+    media_list_to_text_and_srt_files(['/home/brick2/video_mp4/1_國中七下生物/暖身/108新課綱｜國中七下生物｜【暖身】人類與環境的關係.mp4'], '/home/brick2/DataPrepTool/plain_text', '/home/brick2/DataPrepTool/srt', model_size='tiny')
