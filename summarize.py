@@ -283,7 +283,7 @@ def file_list_to_summary_dict(file_list, model_path=vicuna_7b_model_path, temper
         out_dict[file] = summary
     return out_dict
 
-def file_list_to_summary_files(file_list, out_file_path, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
+def file_list_to_summary_files(file_list, out_dir_path, model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     """
     給定一個檔案路徑 list，輸出對應的 summary 到指定檔案路徑
     函式樣式：text_to_summarize(text, model_path=vicuna_13b_model_path, temperature=0.7, tokenizer=None, model=None)
@@ -297,11 +297,12 @@ def file_list_to_summary_files(file_list, out_file_path, model_path=vicuna_7b_mo
     for input_file_path, summary in summary_dict.items():
         filename_with_extension = os.path.basename(input_file_path)
         filename = filename_with_extension.split('.')[0]
-        f = open(f'{out_file_path}/{filename}.txt', 'w')
+        output_file_path = os.path.join(out_dir_path, f'{filename}.txt')
+        f = open(output_file_path, 'w')
         f.write(summary)
         f.close()
 
-    return out_file_path
+    return out_dir_path
 
 def text_to_summary_file(text, output_path='./summarize.txt', model_path=vicuna_7b_model_path, temperature=0.7, tokenizer=None, model=None):
     '''
