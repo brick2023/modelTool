@@ -27,6 +27,16 @@ import time
 import os
 import gc
 
+# RAG
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.postprocessor import SimilarityPostprocessor
+from llama_index.core import StorageContext, load_index_from_storage
+
+from rich import print
+
 info_path = '/home/brick/yenslife/modelTool/test-text-data/information-short.txt'
 format_path = '/home/brick/yenslife/modelTool/train-format.json'
 vicuna_7b_model_path = "lmsys/vicuna-7b-v1.5"
@@ -413,6 +423,104 @@ def introduction(keyword, model_path=vicuna_7b_model_path, temperature=0.5, toke
     gc.collect() # 釋放記憶體
     return gen_str
     # return final_text
+
+def introduction_RAG(keyword, model_path=vicuna_7b_model_path, temperature=0.5, tokenizer=None, model=None):
+    """
+    利用 RAG 模型介紹關鍵字
+    """
+
+    Settings.embed_model = HuggingFaceEmbedding("sentence-transformers/paraphrase-xlm-r-multilingual-v1") # 支援多國語言
+    Settings.llm = None
+    Settings.chunk_size = 256
+    Settings.chunk_overlap = 25
+
+    # 檢查索引是否存在，如果不存在，則直接返回
+    index_path = r"/home/brick2/platform2024/src/test_index"
+    if not os.path.exists(index_path):
+        print("路徑不存在")
+        return []
+    else:
+        print("Loading index...")
+        storage_context = StorageContext.from_defaults(persist_dir=index_path)
+        index = load_index_from_storage(storage_context)
+
+    # create retriever
+    print("Creating retriever...")
+    top_k = 3
+    retriever = VectorIndexRetriever(
+        index=index,
+        similarity_top_k=top_k,
+    )
+
+    # assemble query engine
+    print("Creating query engine...")
+    query_engine = RetrieverQueryEngine(
+        retriever=retriever,
+        node_postprocessors=[SimilarityPostprocessor(similarity_threshold=0.5)],
+    )
+
+    # query
+    print("Querying...")
+    query = keyword
+    results = query_engine.query(query)
+
+    # 整理結果
+    # print("Results:")
+    print(results)
+    context = "Context:\n"
+    sources = []
+    for i in range(top_k):
+        context = context + f"{results.source_nodes[i].text}\n\n"
+        sources.append(results.source_nodes[i].metadata['file_path'].replace('/home/brick2/platform2024/src/', '').replace('.txt', '').replace('/plain_text/', '-'))
+
+    sources = list(set(sources))
+    # print(context)
+    default_prompt = results.response
+    # print(default_prompt)
+    prompt = f"human: 請根據以下內容，簡單介紹一下{keyword}，如果要學習相關的知識，應該搜尋哪些關鍵字。\n\n{context}assistant:"    
+    print(prompt)
+
+    # 定義輸入參數
+    params = {
+        "prompt": prompt,
+        "temperature": temperature, # 隨機性，越靠近1越高越隨機
+        "max_new_tokens": 1000,
+        "stop": "==="
+    }
+
+    # 載入模型, tokenizer
+    if model == None or tokenizer == None:
+        model, tokenizer = load_model(model_path)
+
+    # 喂給模型
+    print('輸入資料到模型中...')
+    
+    # 檢查顯卡
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    print('device:', device)
+
+    gen_str = generate_stream(model, tokenizer, params, device, context_len=2048, stream_interval=2)
+    
+    print('輸入資料到模型中...完成')
+
+    final_text = ''
+
+    for i in gen_str:
+        # print(i)
+        final_text = i['text']
+
+    final_text = final_text.strip()
+    final_text = final_text.split('assistant:')[1].strip() + "\n\n你可以參考課程：" + '、'.join(sources)
+
+    # 釋放記憶體
+    del tokenizer # 釋放記憶體
+    del model # 釋放記憶體
+    gc.collect() # 釋放記憶體
+
+    print(final_text)
+
+    return final_text
+    
 
 if __name__ == "__main__":
     # # 將指定資料夾底下的文字檔案傳給遠端主機
