@@ -17,6 +17,7 @@ import os
 import time # 測試用
 import gc
 from opencc import OpenCC
+import cv2
 
 def media_to_text(media_path, model_size='base'):
     '''
@@ -216,6 +217,35 @@ def dir_to_text_and_srt_files(input_dir_path, text_output_dir_path, srt_output_d
     if not os.path.exists(srt_output_dir_path):
         os.makedirs(srt_output_dir_path)
     return media_list_to_text_and_srt_files(media_path_list, text_output_dir_path, srt_output_dir_path, model_size)
+
+def video_image_generate(video_dir_path, image_dir_path):
+    """
+    產生影片縮圖
+    """
+    # 3. 生成圖片
+    print("生成圖片")
+    files = os.listdir(video_dir_path)
+    for file in files:
+
+        video_capture = cv2.VideoCapture(video_dir_path + '/' + file)  
+        frame_number = 1200
+        video_capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number-1)
+
+        if not video_capture.isOpened():
+            print("無法打開" + file)
+            continue
+
+        ret, frame = video_capture.read()
+        print(type(frame), frame.shape, len(frame))
+
+        if not ret:
+            print("無法擷取" + file)
+            continue
+
+        cv2.imwrite(image_dir_path + '/' + file.replace('.mp4','.jpg'), frame)
+        print(f"已生成 {image_dir_path + '/' + file.replace('.mp4','.jpg')}")
+
+        video_capture.release()
     
 if __name__=='__main__':
     # media_to_srt_file('/home/brick/platform/src/video/company1/algorithm/Lec1.mp4', './test-text-data/Lec1.srt', model_size='base')
